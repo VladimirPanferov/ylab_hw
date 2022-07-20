@@ -22,6 +22,7 @@ pycparser==2.21
 pydantic==1.9.1
 pyparsing==3.0.9
 python-jose==3.3.0
+python-multipart==0.0.5
 redis==4.3.4
 rsa==4.8
 six==1.16.0
