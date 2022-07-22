@@ -4,6 +4,7 @@ from fastapi import (
     HTTPException,
     status,
 )
+from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.hash import bcrypt
 from pydantic import ValidationError
@@ -14,6 +15,14 @@ from api.v1.schemas import auth
 from db import get_session
 
 from src.core import config
+
+
+oauth_scheme = OAuth2PasswordBearer(tokenUrl="/auth/signin/")
+
+
+def get_current_user(token: str = Depends(oauth_scheme)):
+    pass
+
 
 class AuthService:
     @classmethod
