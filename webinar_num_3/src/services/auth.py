@@ -5,26 +5,30 @@ from fastapi import (
     status,
 )
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
+from jose import (
+    JWTError,
+    jwt,
+)
 from passlib.hash import bcrypt
 from pydantic import ValidationError
 from sqlmodel import Session
 
-import models
-from api.v1.schemas import auth
-from db import get_session
+from src.api.v1.schemas import auth
+from ..core import config
 
-from src.core import config
+from .. import models
+from ..db import get_session
 
 
 oauth_scheme = OAuth2PasswordBearer(tokenUrl="/auth/signin/")
 
 
-def get_current_user(token: str = Depends(oauth_scheme)):
-    pass
+def get_current_user(token: str = Depends(oauth_scheme)) -> auth.User:
+    return AuthService.validate_token(token)
 
 
 class AuthService:
+
     @classmethod
     def verify_password(cls, plain_password: str, hashed_password: str) -> bool:
         return bcrypt.verify(plain_password, hashed_password)
