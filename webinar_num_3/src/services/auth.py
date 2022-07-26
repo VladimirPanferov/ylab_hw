@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from functools import lru_cache
 from fastapi import (
     Depends,
     HTTPException,
@@ -14,10 +15,15 @@ from pydantic import ValidationError
 from sqlmodel import Session
 
 from src.api.v1.schemas import auth
+from src.db import AbstractCache, get_cache, get_session
+from src.services.mixins import ServiceMixin
 from ..core import config
 
 from .. import models
 from ..db import get_session
+
+
+__all__ = ("AuthService", "get_auth_service", "get_current_user")
 
 
 oauth_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/signin")
@@ -27,7 +33,7 @@ def get_current_user(token: str = Depends(oauth_scheme)) -> auth.User:
     return AuthService.validate_token(token)
 
 
-class AuthService:
+class AuthService(ServiceMixin):
 
     @classmethod
     def verify_password(cls, plain_password: str, hashed_password: str) -> bool:
@@ -85,9 +91,6 @@ class AuthService:
         )
         return auth.Token(access_token=token)
 
-    def __init__(self, session: Session = Depends(get_session)):
-        self.session = session
-
     def register_new_user(self, user_data: auth.UserCreate) -> auth.Token:
         user = models.User(
             email=user_data.email,
@@ -122,3 +125,11 @@ class AuthService:
             raise exception
 
         return self.create_token(user)
+
+
+@lru_cache()
+def get_auth_service(
+    cache: AbstractCache = Depends(get_cache),
+    session: Session = Depends(get_session),
+) -> AuthService:
+    return AuthService(cache=cache, session=session)
