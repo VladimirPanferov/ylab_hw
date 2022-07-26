@@ -20,7 +20,7 @@ from .. import models
 from ..db import get_session
 
 
-oauth_scheme = OAuth2PasswordBearer(tokenUrl="/auth/signin/")
+oauth_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/signin")
 
 
 def get_current_user(token: str = Depends(oauth_scheme)) -> auth.User:
@@ -69,7 +69,7 @@ class AuthService:
     def create_token(cls, user: models.User) -> auth.Token:
         user_data = auth.User.from_orm(user)
 
-        now = datetime.now()
+        now = datetime.utcnow()
         payload = {
             "iat": now,
             "nbf": now,
@@ -103,7 +103,7 @@ class AuthService:
     def authenticate_user(self, username: str, password: str) -> auth.Token:
         exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="UIncorrect username or password",
+            detail="Incorrect username or password",
             headers={
                 "WWW-Authenticate": "Bearer",
             }
